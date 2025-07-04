@@ -1,0 +1,188 @@
+.post-creator {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
+}
+
+.post-creator-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e4e6ea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.post-input-trigger {
+  flex: 1;
+  height: 40px;
+  border: none;
+  border-radius: 20px;
+  background: #f0f2f5;
+  padding: 0 16px;
+  text-align: left;
+  color: #65676b;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
+}
+
+.post-input-trigger:hover {
+  background: #e4e6ea;
+}
+
+.post-form {
+  margin-top: 12px;
+}
+
+.post-textarea {
+  width: 100%;
+  min-height: 120px;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  font-family: inherit;
+  line-height: 1.5;
+  color: #1c1e21;
+  resize: vertical;
+  padding: 8px 0;
+}
+
+.post-textarea::placeholder {
+  color: #65676b;
+}
+
+.post-options {
+  border-top: 1px solid #dadde1;
+  padding-top: 12px;
+  margin-top: 12px;
+}
+
+.post-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: #65676b;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.action-button:hover {
+  background: #f0f2f5;
+}
+
+.action-button svg {
+  color: #42b883;
+}
+
+.post-submit {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.cancel-button,
+.submit-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-button {
+  background: #e4e6ea;
+  color: #4b4f56;
+}
+
+.cancel-button:hover {
+  background: #d8dadf;
+}
+
+.submit-button {
+  background: #1877f2;
+  color: white;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: #166fe5;
+}
+
+.submit-button:disabled {
+  background: #e4e6ea;
+  color: #bcc0c4;
+  cursor: not-allowed;
+}
+
+.post-quick-actions {
+  display: flex;
+  gap: 1px;
+  border-top: 1px solid #dadde1;
+  margin-top: 12px;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
+
+.quick-action {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: none;
+  background: #f0f2f5;
+  color: #65676b;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.quick-action:hover {
+  background: #e4e6ea;
+}
+
+.quick-action svg {
+  color: #42b883;
+}
+
+@media (max-width: 768px) {
+  .post-actions {
+    justify-content: space-between;
+  }
+  
+  .action-button span,
+  .quick-action span {
+    display: none;
+  }
+  
+  .action-button,
+  .quick-action {
+    min-width: 44px;
+    justify-content: center;
+  }
+}

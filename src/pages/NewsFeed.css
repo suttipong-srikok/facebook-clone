@@ -1,0 +1,21 @@
+.newsfeed {
+  min-height: 100vh;
+  background: #f0f2f5;
+  padding: 20px 0;
+}
+
+.newsfeed-container {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.posts-list {
+  margin-top: 16px;
+}
+
+@media (max-width: 768px) {
+  .newsfeed-container {
+    padding: 0 8px;
+  }
+}
