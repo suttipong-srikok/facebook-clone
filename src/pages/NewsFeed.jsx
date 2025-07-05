@@ -1,128 +1,239 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useAuth } from '../contexts/AuthContext'
+import { postsAPI, commentsAPI } from '../services/api'
 import PostCreator from '../components/PostCreator'
 import Post from '../components/Post'
 import './NewsFeed.css'
 
-// Mock initial posts data
-const initialPosts = [
-  {
-    id: '1',
-    author: {
-      name: 'John Doe',
-      avatar: '👤'
-    },
-    content: 'Just had an amazing day at the beach! The weather was perfect and the sunset was breathtaking. 🌅',
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-    likes: 15,
-    comments: [
-      {
-        id: 'c1',
-        author: { name: 'Jane Smith', avatar: '👩' },
-        content: 'Looks amazing! Which beach did you go to?',
-        timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
-        likes: 3
-      },
-      {
-        id: 'c2',
-        author: { name: 'Mike Johnson', avatar: '👨' },
-        content: 'Great photo! I need to visit that place soon.',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000),
-        likes: 1
-      }
-    ]
-  },
-  {
-    id: '2',
-    author: {
-      name: 'Sarah Wilson',
-      avatar: '👩‍💼'
-    },
-    content: 'Excited to share that I just got promoted to Senior Developer! 🎉 Thank you to everyone who supported me on this journey.',
-    timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
-    likes: 42,
-    comments: [
-      {
-        id: 'c3',
-        author: { name: 'Alex Brown', avatar: '👨‍💻' },
-        content: 'Congratulations! Well deserved! 🎊',
-        timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
-        likes: 5
-      }
-    ]
-  }
-]
+function NewsFeed({ onNavigateToProfile }) {
+  const [posts, setPosts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const { user } = useAuth()
 
-function NewsFeed() {
-  const [posts, setPosts] = useState(initialPosts)
-
-  const handleNewPost = (postContent) => {
-    const newPost = {
-      id: Date.now().toString(),
-      author: {
-        name: 'You',
-        avatar: '😊'
-      },
-      content: postContent,
-      timestamp: new Date(),
-      likes: 0,
-      comments: []
-    }
-    setPosts([newPost, ...posts])
-  }
-
-  const handleLikePost = (postId) => {
-    setPosts(posts.map(post => 
-      post.id === postId 
-        ? { ...post, likes: post.likes + 1 }
-        : post
-    ))
-  }
-
-  const handleAddComment = (postId, commentContent) => {
-    const newComment = {
-      id: Date.now().toString(),
-      author: { name: 'You', avatar: '😊' },
-      content: commentContent,
-      timestamp: new Date(),
-      likes: 0
-    }
-
-    setPosts(posts.map(post => 
-      post.id === postId 
-        ? { ...post, comments: [...post.comments, newComment] }
-        : post
-    ))
-  }
-
-  const handleLikeComment = (postId, commentId) => {
-    setPosts(posts.map(post => 
-      post.id === postId 
-        ? {
-            ...post,
-            comments: post.comments.map(comment =>
-              comment.id === commentId
-                ? { ...comment, likes: comment.likes + 1 }
-                : comment
-            )
+  // Fetch posts from API
+  const fetchPosts = async () => {
+    try {
+      setLoading(true)
+      const response = await postsAPI.getAllPosts(1, 20)
+      
+      // Transform API data to match component structure
+      const transformedPosts = await Promise.all(
+        response.posts.map(async (post) => {
+          // Fetch comments for each post
+          const comments = await commentsAPI.getComments(post.id)
+          
+          return {
+            id: post.id.toString(),
+            author: {
+              id: post.user_id,
+              name: `${post.first_name} ${post.last_name}`,
+              username: post.username,
+              avatar: post.profile_picture_url || '�'
+            },
+            content: post.content,
+            imageUrl: post.image_url,
+            timestamp: new Date(post.created_at),
+            likes: post.likes_count || 0,
+            commentsCount: post.comments_count || 0,
+            comments: comments.map(comment => ({
+              id: comment.id.toString(),
+              author: {
+                id: comment.user_id,
+                name: `${comment.first_name} ${comment.last_name}`,
+                username: comment.username,
+                avatar: comment.profile_picture_url || '👤'
+              },
+              content: comment.content,
+              timestamp: new Date(comment.created_at),
+              likes: comment.likes_count || 0
+            }))
           }
-        : post
-    ))
+        })
+      )
+      
+      setPosts(transformedPosts)
+      setError('')
+    } catch (err) {
+      console.error('Error fetching posts:', err)
+      setError('Failed to load posts. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchPosts()
+  }, [])
+
+  const handleNewPost = async (postContent) => {
+    try {
+      const newPostData = await postsAPI.createPost({ content: postContent })
+      
+      // Transform the new post to match component structure
+      const transformedPost = {
+        id: newPostData.id.toString(),
+        author: {
+          id: newPostData.user.id,
+          name: `${newPostData.user.firstName} ${newPostData.user.lastName}`,
+          username: newPostData.user.username,
+          avatar: newPostData.user.profilePicture || '�'
+        },
+        content: newPostData.content,
+        imageUrl: newPostData.imageUrl,
+        timestamp: new Date(newPostData.createdAt),
+        likes: newPostData.likesCount || 0,
+        commentsCount: newPostData.commentsCount || 0,
+        comments: []
+      }
+      
+      setPosts([transformedPost, ...posts])
+    } catch (err) {
+      console.error('Error creating post:', err)
+      setError('Failed to create post. Please try again.')
+    }
+  }
+
+  const handleLikePost = async (postId) => {
+    try {
+      const result = await postsAPI.likePost(postId)
+      
+      // Update the post in the local state
+      setPosts(posts.map(post => 
+        post.id === postId 
+          ? { 
+              ...post, 
+              likes: result.liked ? post.likes + 1 : post.likes - 1,
+              isLiked: result.liked
+            }
+          : post
+      ))
+    } catch (err) {
+      console.error('Error liking post:', err)
+      setError('Failed to like post. Please try again.')
+    }
+  }
+
+  const handleAddComment = async (postId, commentContent) => {
+    try {
+      const newCommentData = await commentsAPI.createComment({
+        postId: parseInt(postId),
+        content: commentContent
+      })
+      
+      const newComment = {
+        id: newCommentData.id.toString(),
+        author: {
+          id: newCommentData.user.id,
+          name: `${newCommentData.user.firstName} ${newCommentData.user.lastName}`,
+          username: newCommentData.user.username,
+          avatar: newCommentData.user.profilePicture || '�'
+        },
+        content: newCommentData.content,
+        timestamp: new Date(newCommentData.createdAt),
+        likes: newCommentData.likesCount || 0
+      }
+
+      setPosts(posts.map(post => 
+        post.id === postId 
+          ? { 
+              ...post, 
+              comments: [...post.comments, newComment],
+              commentsCount: post.commentsCount + 1
+            }
+          : post
+      ))
+    } catch (err) {
+      console.error('Error adding comment:', err)
+      setError('Failed to add comment. Please try again.')
+    }
+  }
+
+  const handleLikeComment = async (postId, commentId) => {
+    try {
+      const result = await commentsAPI.likeComment(commentId)
+      
+      setPosts(posts.map(post => 
+        post.id === postId 
+          ? {
+              ...post,
+              comments: post.comments.map(comment =>
+                comment.id === commentId
+                  ? { 
+                      ...comment, 
+                      likes: result.liked ? comment.likes + 1 : comment.likes - 1,
+                      isLiked: result.liked
+                    }
+                  : comment
+              )
+            }
+          : post
+      ))
+    } catch (err) {
+      console.error('Error liking comment:', err)
+      setError('Failed to like comment. Please try again.')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="newsfeed">
+        <div className="newsfeed-container">
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            height: '200px',
+            fontSize: '18px',
+            color: '#65676b'
+          }}>
+            Loading posts...
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="newsfeed">
       <div className="newsfeed-container">
         <PostCreator onSubmit={handleNewPost} />
+        
+        {error && (
+          <div style={{
+            background: '#ffe6e6',
+            color: '#d32f2f',
+            padding: '12px',
+            borderRadius: '8px',
+            margin: '16px 0',
+            border: '1px solid #ffcdd2'
+          }}>
+            {error}
+          </div>
+        )}
+        
         <div className="posts-list">
-          {posts.map(post => (
-            <Post
-              key={post.id}
-              post={post}
-              onLike={() => handleLikePost(post.id)}
-              onComment={(content) => handleAddComment(post.id, content)}
-              onLikeComment={(commentId) => handleLikeComment(post.id, commentId)}
-            />
-          ))}
+          {posts.length === 0 && !loading ? (
+            <div style={{
+              textAlign: 'center',
+              padding: '40px',
+              color: '#65676b',
+              fontSize: '16px'
+            }}>
+              No posts yet. Be the first to share something!
+            </div>
+          ) : (
+            posts.map(post => (
+              <Post
+                key={post.id}
+                post={post}
+                onLike={() => handleLikePost(post.id)}
+                onComment={(content) => handleAddComment(post.id, content)}
+                onLikeComment={(commentId) => handleLikeComment(post.id, commentId)}
+                onNavigateToProfile={onNavigateToProfile}
+              />
+            ))
+          )}
         </div>
       </div>
     </div>

@@ -2,11 +2,19 @@ import { useState } from 'react'
 import { Heart, MessageCircle } from 'lucide-react'
 import './Comment.css'
 
-function Comment({ comment, onLike }) {
-  const [isLiked, setIsLiked] = useState(false)
+function Comment({ comment, onLike, onNavigateToProfile }) {
+  const [isLiked, setIsLiked] = useState(comment.isLiked || false)
+  const [likesCount, setLikesCount] = useState(comment.likes || 0)
 
   const handleLike = () => {
-    setIsLiked(!isLiked)
+    const newLikedState = !isLiked
+    const newLikesCount = newLikedState ? likesCount + 1 : likesCount - 1
+    
+    // Optimistically update UI
+    setIsLiked(newLikedState)
+    setLikesCount(newLikesCount)
+    
+    // Call parent handler
     onLike()
   }
 
@@ -28,7 +36,15 @@ function Comment({ comment, onLike }) {
       <div className="comment-avatar">{comment.author.avatar}</div>
       <div className="comment-content">
         <div className="comment-bubble">
-          <div className="comment-author">{comment.author.name}</div>
+          <div className="comment-author">
+            <span 
+              onClick={() => onNavigateToProfile && onNavigateToProfile('user-profile', comment.author.id)}
+              style={{ cursor: 'pointer', color: '#1877f2' }}
+            >
+              {comment.author.name}
+            </span>
+            <span className="comment-username">@{comment.author.username}</span>
+          </div>
           <div className="comment-text">{comment.content}</div>
         </div>
         <div className="comment-actions">
@@ -40,10 +56,10 @@ function Comment({ comment, onLike }) {
           </button>
           <button className="comment-action">Reply</button>
           <span className="comment-time">{formatTimestamp(comment.timestamp)}</span>
-          {comment.likes > 0 && (
+          {likesCount > 0 && (
             <span className="comment-likes">
               <Heart size={12} fill="#e91e63" />
-              {comment.likes}
+              {likesCount}
             </span>
           )}
         </div>

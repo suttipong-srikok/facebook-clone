@@ -1,15 +1,38 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Heart, MessageCircle, Share, MoreHorizontal } from 'lucide-react'
+import { postsAPI } from '../services/api'
 import Comment from './Comment'
 import './Post.css'
 
-function Post({ post, onLike, onComment, onLikeComment }) {
+function Post({ post, onLike, onComment, onLikeComment, onNavigateToProfile }) {
   const [showComments, setShowComments] = useState(false)
   const [newComment, setNewComment] = useState('')
-  const [isLiked, setIsLiked] = useState(false)
+  const [isLiked, setIsLiked] = useState(post.isLiked || false)
+  const [likesCount, setLikesCount] = useState(post.likes || 0)
 
-  const handleLike = () => {
-    setIsLiked(!isLiked)
+  // Check like status when component mounts
+  useEffect(() => {
+    const checkLikeStatus = async () => {
+      try {
+        const status = await postsAPI.getLikeStatus(post.id)
+        setIsLiked(status.liked)
+      } catch (error) {
+        console.error('Error checking like status:', error)
+      }
+    }
+    
+    checkLikeStatus()
+  }, [post.id])
+
+  const handleLike = async () => {
+    const newLikedState = !isLiked
+    const newLikesCount = newLikedState ? likesCount + 1 : likesCount - 1
+    
+    // Optimistically update UI
+    setIsLiked(newLikedState)
+    setLikesCount(newLikesCount)
+    
+    // Call parent handler which handles API call
     onLike()
   }
 
@@ -40,7 +63,14 @@ function Post({ post, onLike, onComment, onLikeComment }) {
         <div className="post-author">
           <div className="author-avatar">{post.author.avatar}</div>
           <div className="author-info">
-            <h3 className="author-name">{post.author.name}</h3>
+            <h3 
+              className="author-name clickable" 
+              onClick={() => onNavigateToProfile && onNavigateToProfile('user-profile', post.author.id)}
+              style={{ cursor: 'pointer', color: '#1877f2' }}
+            >
+              {post.author.name}
+            </h3>
+            <p className="author-username">@{post.author.username}</p>
             <time className="post-time">{formatTimestamp(post.timestamp)}</time>
           </div>
         </div>
@@ -51,14 +81,19 @@ function Post({ post, onLike, onComment, onLikeComment }) {
 
       <div className="post-content">
         <p>{post.content}</p>
+        {post.imageUrl && (
+          <div className="post-image">
+            <img src={post.imageUrl} alt="Post content" />
+          </div>
+        )}
       </div>
 
       <div className="post-stats">
         <span className="likes-count">
-          {post.likes > 0 && (
+          {likesCount > 0 && (
             <>
               <span className="like-icon">❤️</span>
-              {post.likes}
+              {likesCount}
             </>
           )}
         </span>
@@ -95,6 +130,7 @@ function Post({ post, onLike, onComment, onLikeComment }) {
               key={comment.id}
               comment={comment}
               onLike={() => onLikeComment(comment.id)}
+              onNavigateToProfile={onNavigateToProfile}
             />
           ))}
           

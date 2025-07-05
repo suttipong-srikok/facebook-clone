@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for development and production
+# Multi-stage Dockerfile for Next.js development and production
 
 # Development stage
 FROM node:18-alpine AS development
@@ -15,40 +15,51 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
-# Expose port 5173 (Vite's default port)
-EXPOSE 5173
+# Expose port 3000 (Next.js default port)
+EXPOSE 3000
 
 # Start the development server
 CMD ["npm", "run", "dev"]
 
-# Production build stage
-FROM node:18-alpine AS build
-
+# Dependencies stage for production
+FROM node:18-alpine AS deps
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
+# Install dependencies based on the preferred package manager
+COPY package.json package-lock.json* ./
 RUN npm ci --only=production
 
-# Copy source code
+# Build stage
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Build the application
 RUN npm run build
 
 # Production stage
-FROM nginx:alpine AS production
+FROM node:18-alpine AS production
 
-# Copy built files from build stage
-COPY --from=build /app/dist /usr/share/nginx/html
+WORKDIR /app
 
-# Copy nginx configuration (optional)
-# COPY nginx.conf /etc/nginx/nginx.conf
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-# Expose port 80
-EXPOSE 80
+# Copy the public folder
+COPY --from=builder /app/public ./public
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Copy the built application
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
+
+# Start the application
+CMD ["node", "server.js"]

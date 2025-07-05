@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Image, Smile, MapPin } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
 import './PostCreator.css'
 
 function PostCreator({ onSubmit }) {
   const [content, setContent] = useState('')
   const [isExpanded, setIsExpanded] = useState(false)
+  const { user } = useAuth()
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -18,12 +20,18 @@ function PostCreator({ onSubmit }) {
   return (
     <div className="post-creator">
       <div className="post-creator-header">
-        <div className="user-avatar">😊</div>
+        <div className="user-avatar">
+          {user?.profilePicture ? (
+            <img src={user.profilePicture} alt="Your avatar" />
+          ) : (
+            '😊'
+          )}
+        </div>
         <button 
           className="post-input-trigger"
           onClick={() => setIsExpanded(true)}
         >
-          What's on your mind?
+          What's on your mind, {user?.firstName}?
         </button>
       </div>
 

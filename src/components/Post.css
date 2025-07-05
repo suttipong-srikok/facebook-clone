@@ -1,9 +1,10 @@
 .post {
-  background: white;
+  background: var(--surface);
   border-radius: 8px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   margin-bottom: 16px;
   overflow: hidden;
+  transition: background-color 0.3s ease;
 }
 
 .post-header {
@@ -33,6 +34,7 @@
 .author-info {
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
 .author-name {
@@ -40,6 +42,26 @@
   font-size: 15px;
   font-weight: 600;
   color: #1c1e21;
+}
+
+/* Add clickable name styling */
+.author-name.clickable {
+  cursor: pointer;
+  color: var(--primary) !important;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.author-name.clickable:hover {
+  color: var(--primary-hover) !important;
+  text-decoration: underline;
+}
+
+.author-username {
+  font-size: 12px;
+  color: #65676b;
+  margin: 0;
+  font-weight: 400;
 }
 
 .post-time {
@@ -63,7 +85,7 @@
 }
 
 .post-menu:hover {
-  background: #f0f2f5;
+  background: var(--primary-light, #f0f2f5);
 }
 
 .post-content {
@@ -77,6 +99,18 @@
   line-height: 1.33;
   color: #1c1e21;
   word-wrap: break-word;
+}
+
+.post-image {
+  margin-top: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.post-image img {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .post-stats {
@@ -131,7 +165,7 @@
 }
 
 .action-btn:hover {
-  background: #f0f2f5;
+  background: var(--primary-light, #f0f2f5);
 }
 
 .action-btn.liked {
@@ -156,7 +190,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #e4e6ea;
+  background: var(--border, #e4e6ea);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -169,7 +203,7 @@
   height: 36px;
   border: none;
   border-radius: 18px;
-  background: #f0f2f5;
+  background: var(--primary-light, #f0f2f5);
   padding: 0 12px;
   font-size: 14px;
   outline: none;
