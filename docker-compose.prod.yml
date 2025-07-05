@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  facebook-clone-prod:
+    build:
+      context: .
+      target: production
+    container_name: facebook-clone-prod
+    ports:
+      - "80:80"
+    networks:
+      - facebook-clone-network
+
+networks:
+  facebook-clone-network:
+    driver: bridge

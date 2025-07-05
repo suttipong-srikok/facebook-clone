@@ -46,12 +46,57 @@ A modern React application that replicates Facebook's core functionality, built 
 
 4. Open your browser and visit `http://localhost:5173`
 
+### Docker Installation (Alternative)
+
+If you prefer to use Docker, you can run the application using Docker Compose:
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd facebook-clone
+   ```
+
+2. **Development Mode**: Build and start the application with Docker Compose:
+   ```bash
+   docker-compose up --build
+   ```
+
+3. Open your browser and visit `http://localhost:3000`
+
+**Production Mode**: For a production build with Nginx:
+```bash
+docker-compose -f docker-compose.prod.yml up --build
+```
+Then visit `http://localhost:80`
+
+**Useful Docker Commands**:
+```bash
+# Stop the application
+docker-compose down
+
+# Rebuild the Docker image
+docker-compose build --no-cache
+
+# View logs
+docker-compose logs -f
+
+# Run in background (detached mode)
+docker-compose up -d
+```
+
 ## Available Scripts
 
 - `npm run dev` - Start the development server
 - `npm run build` - Build the project for production
 - `npm run preview` - Preview the production build locally
 - `npm run lint` - Run ESLint to check code quality
+
+### Docker Scripts
+- `npm run docker:build` - Build the Docker image
+- `npm run docker:up` - Start the Docker containers
+- `npm run docker:dev` - Build and start containers (development)
+- `npm run docker:down` - Stop and remove Docker containers
+- `npm run docker:logs` - View container logs
 
 ## Project Structure
 
